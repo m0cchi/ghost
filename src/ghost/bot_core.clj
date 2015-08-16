@@ -35,7 +35,9 @@
     (let [data (json/read-str response :key-fn keyword)
           type (:type data)
           keys (keys data)
+          on-all (:all (:event this))
           on (select-func this type keys)]
+      (if on-all (doseq [m on-all] (m data)))
       (on data)))
   (on-type [this message]
     (let [message-fns ((keyword (:type message)) (:event this))]
