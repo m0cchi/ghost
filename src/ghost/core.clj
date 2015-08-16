@@ -12,7 +12,7 @@
   (connect [this])
   (receiver [this response])
   (select-func [this type keys])
-  (on-message [this message]))
+  (on-type [this message]))
 
 (defrecord Bot [connection users channels groups event]
   IBot
@@ -23,24 +23,28 @@
                         :on-receive #(receiver this %))]
       s))
   (select-func [this type keys]
-    (cond
-      (and (= type "message")
-           (= -1 (.indexOf keys :reply_to))
-           (= -1 (.indexOf keys :deleted_ts))) #(on-message this %)
-           :else (fn [x] x)))
+    (let [nop (fn [x] x)]
+      (if (contains? (:event this) (keyword type))
+        (cond
+          (and (= type "message")
+               (or
+                (< -1 (.indexOf keys :reply_to))
+                (< -1 (.indexOf keys :deleted_ts)))) nop
+                :else #(on-type this %))
+        nop)))
   (receiver [this response]
     (let [data (json/read-str response :key-fn keyword)
           type (:type data)
           keys (keys data)
           on (select-func this type keys)]
       (on data)))
-  (on-message [this message]
-    (let [messages (:message (:event this))]
-      (doseq [message-fn messages]
+  (on-type [this message]
+    (let [message-fns ((keyword (:type message)) (:event this))]
+      (doseq [message-fn message-fns]
         (message-fn message)))))
 
 (defrecord User [id name])
-
+  
 (defrecord Channel [id name members])
 
 (defrecord Group [id name members])
@@ -88,8 +92,12 @@
          groups (create #'constructor-group (:groups (groups/list connection)))
          bot (->Bot connection users channels groups event)]
      bot)))
-  
+ 
+(defn print-message [data]
+ (println (:text data)))
+
 (defn -main [& args]
   (let [token (first args)
-        bot (constructor-bot token)]
+        event {:message [#'print-message]}
+       bot (constructor-bot token event)]
     (connect bot)))
