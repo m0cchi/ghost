@@ -11,7 +11,7 @@
   (url [this])
   (connect [this])
   (receiver [this response])
-  (select-func [this type])
+  (select-func [this type keys])
   (on-message [this message]))
 
 (defrecord Bot [connection users channels groups event]
@@ -22,14 +22,17 @@
     (let [s (ws/connect (url this)
                         :on-receive #(receiver this %))]
       s))
-  (select-func [this type]
-    (case type
-      "message" #(on-message this %)
-      (fn [x] x)))
+  (select-func [this type keys]
+    (cond
+      (and (= type "message")
+           (= -1 (.indexOf keys :reply_to))
+           (= -1 (.indexOf keys :deleted_ts))) #(on-message this %)
+           :else (fn [x] x)))
   (receiver [this response]
     (let [data (json/read-str response :key-fn keyword)
           type (:type data)
-          on (select-func this type)]
+          keys (keys data)
+          on (select-func this type keys)]
       (on data)))
   (on-message [this message]
     (let [messages (:message (:event this))]
@@ -42,7 +45,7 @@
 
 (defrecord Group [id name members])
 
-(defn constructor-group [group]
+(defn- constructor-group [group]
   (let [id (:id group) 
         name (:name group)
         members (:members group)]
@@ -50,7 +53,7 @@
       (->Group id name members)
       nil)))
 
-(defn constructor-channel [channel]
+(defn- constructor-channel [channel]
   (let [id (:id channel)
         name (:name channel)
         members (:members channel)]
@@ -58,12 +61,12 @@
       (->Channel id name members)
       nil)))
 
-(defn constructor-user
+(defn- constructor-user
   "create with hash"
  [member]
  (->User (:id member) (:name member)))
 
-(defn create
+(defn- create
   ([create-fn data]
    (create create-fn (first data) (rest data)))
   ([create-fn head tail]
