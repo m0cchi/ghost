@@ -8,10 +8,29 @@
             [gniazdo.core :as ws]))
 
 (defprotocol IBot
+  (url [this])
+  (connect [this])
+  (receiver [this response])
+  (select-func [this type])
   (on-message [this message]))
 
 (defrecord Bot [connection users channels groups event]
   IBot
+  (url [this]
+    (:url (rtm/start (:connection this))))
+  (connect [this]
+    (let [s (ws/connect (url this)
+                        :on-receive #(receiver this %))]
+      s))
+  (select-func [this type]
+    (case type
+      "message" #(on-message this %)
+      (fn [x] x)))
+  (receiver [this response]
+    (let [data (json/read-str response :key-fn keyword)
+          type (:type data)
+          on (select-func this type)]
+      (on data)))
   (on-message [this message]
     (let [messages (:message (:event this))]
       (doseq [message-fn messages]
@@ -67,28 +86,7 @@
          bot (->Bot connection users channels groups event)]
      bot)))
   
-(defn on-message [data]
-  (println (get data :text)))
-
-(defn on-nop [data] "nop")
-
-(defn select-func [type]
-  (case type
-    "message" #'on-message
-    #'on-nop))
-
-(defn receiver [mes]
-  (let [data (json/read-str mes :key-fn keyword)
-        type (get data :type)
-        on (select-func type)]
-    (on data)))
-
-(defn connect [url]
-  (let [s (ws/connect url
-                      :on-receive #'receiver)]))
-
 (defn -main [& args]
   (let [token (first args)
-        connection  {:api-url "https://slack.com/api" :token token}]
-    (connect (get (rtm/start connection) :url))))
-
+        bot (constructor-bot token)]
+    (connect bot)))
