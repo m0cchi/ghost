@@ -37,12 +37,12 @@
           keys (keys data)
           on-all (:all (:event this))
           on (select-func this type keys)]
-      (if on-all (doseq [m on-all] (m data)))
+      (if on-all (doseq [m on-all] (m this data)))
       (on data)))
   (on-type [this message]
     (let [message-fns ((keyword (:type message)) (:event this))]
       (doseq [message-fn message-fns]
-        (message-fn message)))))
+        (message-fn this message)))))
 
 (defrecord User [id name])
   
@@ -85,7 +85,7 @@
 
 (defn constructor-bot
   ([token]
-   (constructor-bot token {:message [#(println %)]}))
+   (constructor-bot token {:message [#(println %2)]}))
   ([token event]
    (let [connection {:api-url "https://slack.com/api" :token token}
          users (create #'constructor-user (:members (users/list connection)))

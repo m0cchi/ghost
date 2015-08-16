@@ -2,7 +2,7 @@
   (:gen-class main true)
   (:require [ghost.bot-core :as bot]))
  
-(defn print-message [data]
+(defn print-message [this data]
  (println (:text data)))
 
 (defn -main [& args]
