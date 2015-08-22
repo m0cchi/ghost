@@ -6,6 +6,9 @@
             [clojure.data.json :as json]
             [gniazdo.core :as ws]))
 
+
+(def build-in-events {:channel_created [#update-channel]})
+
 (defprotocol IBot
   (url [this])
   (connect [this])
@@ -83,6 +86,26 @@
        (create create-fn (rest head) (rest tail) workpieces)
        workpieces))))
 
+(defn- update-channel [this data]
+  (assoc this :channels
+         (create #'constructor-channel (:channels (channels/list (:connection this))))))
+
+(defn build-in 
+  ([events]
+   (doseq [build-in-event-key (keys build-in-events)]
+     (assoc events (build-in (build-in-event-key events) (build-in-event-key build-in-events)))))
+  ([event build-in-events]
+   (if event
+     (build-in event (first build-in-events) (rest build-in-events))
+     build-in-events))
+  ([event build-in-event build-in-events]
+   (let [event (conj build-in-event event)
+         build-in-event (first build-in-events)
+         build-in-events (rest build-in-events)]
+     (if build-in-event
+       (build-in event build-in-event build-in-events)
+       event))))
+
 (defn constructor-bot
   ([token]
    (constructor-bot token {:message [#(println %2)]}))
@@ -91,5 +114,6 @@
          users (create #'constructor-user (:members (users/list connection)))
          channels (create #'constructor-channel (:channels (channels/list connection)))
          groups (create #'constructor-group (:groups (groups/list connection)))
+         event (build-in event)
          bot (->Bot connection users channels groups event)]
      bot)))
