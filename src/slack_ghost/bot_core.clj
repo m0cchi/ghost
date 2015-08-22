@@ -7,7 +7,9 @@
             [gniazdo.core :as ws]))
 
 
-(def build-in-events {:channel_created [#update-channel]})
+(def build-in-events {:channel_created [#update-channel]
+                      :team_join [#update-user]
+                      :user_change [#update-user]})
 
 (defprotocol IBot
   (url [this])
@@ -89,6 +91,10 @@
 (defn- update-channel [this data]
   (assoc this :channels
          (create #'constructor-channel (:channels (channels/list (:connection this))))))
+
+(defn- update-user [this data]
+  (assoc this :users
+         (create #'constructor-user (:members (users/list (:connection this))))))
 
 (defn- build-in 
   ([events]
