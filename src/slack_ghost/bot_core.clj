@@ -6,11 +6,9 @@
             [clojure.data.json :as json]
             [gniazdo.core :as ws]))
 
-
-(def build-in-events {:channel_created [#update-channel]
-                      :team_join [#update-user]
-                      :user_change [#update-user]})
-
+(def build-in-events {:channel_created ['update-channel]
+                      :team_join ['update-user]
+                      :user_change ['update-user]})
 (defprotocol IBot
   (url [this])
   (connect [this])
