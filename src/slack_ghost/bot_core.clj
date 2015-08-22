@@ -90,7 +90,7 @@
   (assoc this :channels
          (create #'constructor-channel (:channels (channels/list (:connection this))))))
 
-(defn build-in 
+(defn- build-in 
   ([events]
    (doseq [build-in-event-key (keys build-in-events)]
      (assoc events (build-in (build-in-event-key events) (build-in-event-key build-in-events)))))
