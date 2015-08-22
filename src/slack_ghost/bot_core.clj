@@ -1,4 +1,4 @@
-(ns ghost.bot-core
+(ns slack-ghost.bot-core
   (:require [clj-slack.rtm :as rtm]
             [clj-slack.channels :as channels]
             [clj-slack.groups :as groups]

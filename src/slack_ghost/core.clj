@@ -1,6 +1,6 @@
-(ns ghost.core
+(ns slack-ghost.core
   (:gen-class main true)
-  (:require [ghost.bot-core :as bot]))
+  (:require [slack-ghost.bot-core :as bot]))
  
 (defn print-message [this data]
  (println (:text data)))
