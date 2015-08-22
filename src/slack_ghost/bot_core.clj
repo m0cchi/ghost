@@ -97,7 +97,8 @@
 (defn- build-in 
   ([events]
    (doseq [build-in-event-key (keys build-in-events)]
-     (assoc events build-in-event-key (build-in (build-in-event-key events) (build-in-event-key build-in-events)))))
+     (assoc events build-in-event-key (build-in (build-in-event-key events) (build-in-event-key build-in-events))))
+   events)
   ([event build-in-events]
    (if event
      (build-in event (first build-in-events) (rest build-in-events))
