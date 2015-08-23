@@ -71,8 +71,8 @@
 
 (defn- constructor-user
   "create with hash"
- [member]
- (->User (:id member) (:name member)))
+  [member]
+  (->User (:id member) (:name member)))
 
 (defn- create
   ([create-fn data]
@@ -83,7 +83,7 @@
    (let [workpiece (create-fn head)
         workpieces(if workpiece (conj workpieces workpiece) workpieces)]
      (if-not (empty? tail)
-       (create create-fn (rest head) (rest tail) workpieces)
+       (create create-fn (first tail) (rest tail) workpieces)
        workpieces))))
 
 (defn- update-channel [this data]
