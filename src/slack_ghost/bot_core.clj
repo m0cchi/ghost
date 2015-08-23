@@ -30,6 +30,7 @@
         (cond
           (and (= type "message")
                (or
+                (< -1 (.indexOf key :subtype))
                 (< -1 (.indexOf keys :reply_to))
                 (< -1 (.indexOf keys :deleted_ts)))) nop
                 :else #(on-type this %))
