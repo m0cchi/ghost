@@ -3,6 +3,7 @@
             [clj-slack.channels :as channels]
             [clj-slack.groups :as groups]
             [clj-slack.users :as users]
+            [clj-slack.auth :as auth]
             [clojure.data.json :as json]
             [gniazdo.core :as ws]))
 
@@ -16,7 +17,7 @@
   (select-func [this type keys])
   (on-type [this message]))
 
-(defrecord Bot [connection users channels groups event]
+(defrecord Bot [connection ownid users channels groups event]
   IBot
   (url [this]
     (:url (rtm/start (:connection this))))
@@ -44,12 +45,13 @@
       (if on-all (doseq [m on-all] (m this data)))
       (on data)))
   (on-type [this message]
-    (let [message-fns ((keyword (:type message)) (:event this))]
-      (doseq [message-fn message-fns]
-        (message-fn this message)))))
+    (if (not (= (:ownid this) (:user message)))
+      (let [message-fns ((keyword (:type message)) (:event this))]
+        (doseq [message-fn message-fns]
+          (message-fn this message))))))
 
 (defrecord User [id name])
-  
+
 (defrecord Channel [id name members])
 
 (defrecord Group [id name members])
@@ -112,6 +114,11 @@
        (build-in event build-in-event build-in-events)
        event))))
 
+(defn get-ownid [connection]
+  (let [data (auth/test connection)]
+    (if (:ok data)
+      (:user_id data))))
+
 (defn constructor-bot
   ([token]
    (constructor-bot token {:message [#(println %2)]}))
@@ -121,5 +128,6 @@
          channels (create #'constructor-channel (:channels (channels/list connection)))
          groups (create #'constructor-group (:groups (groups/list connection)))
          event (build-in event)
-         bot (->Bot connection users channels groups event)]
+         ownid (get-ownid connection)
+         bot (->Bot connection ownid users channels groups event)]
      bot)))
