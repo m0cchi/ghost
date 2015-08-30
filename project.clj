@@ -7,4 +7,4 @@
   :dependencies [[org.clojure/clojure "1.6.0"]
                  [stylefruits/gniazdo "0.4.0"]
                  [org.julienxx/clj-slack "0.4.3"]])
-])
+;])
