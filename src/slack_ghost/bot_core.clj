@@ -48,7 +48,8 @@
     (if (not (= (:ownid this) (:user message)))
       (let [message-fns ((keyword (:type message)) (:event this))]
         (doseq [message-fn message-fns]
-          (message-fn this message))))))
+          (try (message-fn this message)
+               (catch Exception e (.printStackTrace e))))))))
 
 (defrecord User [id name])
 
