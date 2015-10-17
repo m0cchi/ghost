@@ -1,3 +1,64 @@
 #+TITLE: ghost is slack bot utility
 #+AUTHOR: mocchi
 #+DATE: <2015-10-18 Sun>
+
+* repository
+https://clojars.org/slack-ghost
+*[slack-ghost "0.6.2-SNAPSHOT"]*
+
+* bot sample
+#+BEGIN_SRC clojure
+(ns slack-bot.core
+  (:require 
+   [clj-slack.chat :as chat]
+   [clj-slack.channels :as channels]
+   [slack-ghost.bot-util :refer :all]
+   [clj-slack.reactions :as reactions]
+   [slack-ghost.bot-core :as slack]))
+
+(defn- join
+  ([bot]
+   (loop [channels (:channels bot)]
+     (if (not (= (count channels) 0))
+       (do
+         (join bot (:name (first channels)))
+         (recur (rest channels))))))
+  ([bot channel-name]
+   (println (channels/join (:connection bot) channel-name))))
+
+(defn echo [bot event]
+  (let [con (:connection bot)
+        user-obj (search-user bot event)
+        ch (:channel event)
+        message (:text event)
+        optionals {:as_user "true"}]
+    (chat/post-message con ch (str (:name user-obj) ":" message) optionals)))
+
+(defn res-message [bot event]
+  (let [con (:connection bot)
+        message (:text event)
+        optionals {:as_user "true"}]
+    (if (match-channel bot event "bot-test")
+      (chat/post-message con (:id (search-channel-with-name bot "general")) (str "#bot-testで発言がありました->" message) {:icon_emoji ":sushi:" :username "sushi_bot"}))
+    (if (re-find #"^(?=.*ホットドッグ)(?=.*(食べたい|たべたい|ほしい|欲しい|おなか|お腹|まんぞく|満足))" message)
+      (chat/post-message con (:channel event) "https://www.pakutaso.com/assets_c/2015/09/150711148887-thumb-1000xauto-19209.jpg" optionals))
+    (if (and (re-find #"(いけない|行けない|むりに|無理に)" message) (re-find #"(sushi|すし|スシ|寿司|鮨)" message))
+      (chat/post-message con (:channel event) (str (:name (search-user bot event)) "寿司こないの！？" (:name (search-user bot event)) "が居ないと盛り上がらないよ＞＜") optionals))
+    (if (re-find #"(sushi|すし|スシ|寿司|鮨)" message)
+      (reactions/add con "sushi" {:channel (:channel event) :timestamp (:ts event)}))
+    (if (re-find #"^(sushi|すし|スシ|寿司|鮨)$" message) (chat/post-message con (:channel event) ":sushi:食べたい" optionals))))
+
+(defn -main [& args]
+  (let [token (System/getenv "TOKEN")
+                ; (:type event) => :message
+                ; https://api.slack.com/rtm
+        events {:message [echo res-message]
+                :all [#(println %2)]}]
+    (if (some? token)
+      (let [bot (slack/constructor-bot token events)]
+        (join bot)
+        (slack/connect bot))
+      (println "TOKEN isn't specified"))))
+
+#+END_SRC
+
