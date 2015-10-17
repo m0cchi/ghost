@@ -17,3 +17,7 @@
 
 (defn search-channel-with-name [this name]
   (search (:channels this) name :name))
+
+(defn match-channel [this data ch-string]
+  (let [ch-name (:name (search-channel this data))]
+    (= ch-name ch-string)))
