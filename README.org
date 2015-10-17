@@ -1,0 +1,3 @@
+#+TITLE: ghost is slack bot utility
+#+AUTHOR: mocchi
+#+DATE: <2015-10-18 Sun>
