@@ -34,9 +34,6 @@ https://clojars.org/slack-ghost
         optionals {:as_user "true"}]
     (chat/post-message con ch (str (:name user-obj) ":" message) optionals)))
 
-(defn auto-join [bot event]
-  (join bot (:name (search-channel bot event))))
-
 (defn res-message [bot event]
   (let [con (:connection bot)
         message (:text event)
@@ -63,7 +60,7 @@ https://clojars.org/slack-ghost
 (defn -main [& args]
   (let [token (System/getenv "TOKEN")]
     (if (some? token)
-      (let [bot (slack/constructor-bot token {:message [res-message]
+      (let [bot (slack/constructor-bot token {:message [echo res-message]
                                               :all [#(println %2)]})]
         (join bot)
         (slack/connect bot))
