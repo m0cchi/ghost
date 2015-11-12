@@ -4,7 +4,7 @@
 
 * repository
 https://clojars.org/slack-ghost
-*[slack-ghost "0.6.2-SNAPSHOT"]*
+*[slack-ghost \"0.6.2-SNAPSHOT\"]*
 
 * bot sample
 #+BEGIN_SRC clojure
