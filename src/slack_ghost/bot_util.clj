@@ -1,4 +1,6 @@
-(ns slack-ghost.bot-util)
+(ns slack-ghost.bot-util
+  (:require [clj-slack.channels :as channels]))
+
 
 (defn search
   ([list target key]
@@ -30,4 +32,4 @@
          (join bot (:name (first channels)))
          (recur (rest channels))))))
   ([bot channel-name]
-   (println (channels/join (:connection bot) channel-name))))
+   (channels/join (:connection bot) channel-name)))
