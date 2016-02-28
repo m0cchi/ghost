@@ -21,3 +21,13 @@
 (defn match-channel [this data ch-string]
   (let [ch-name (:name (search-channel this data))]
     (= ch-name ch-string)))
+
+(defn join-all
+  ([bot]
+   (loop [channels (:channels bot)]
+     (if (not (= (count channels) 0))
+       (do
+         (join bot (:name (first channels)))
+         (recur (rest channels))))))
+  ([bot channel-name]
+   (println (channels/join (:connection bot) channel-name))))
