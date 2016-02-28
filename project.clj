@@ -1,4 +1,4 @@
-(defproject slack-ghost "0.6.3-SNAPSHOT"
+(defproject slack-ghost "0.6.4-SNAPSHOT"
   :description "slack bot"
   :url "https://github.com/mocchit/ghost"
   :license {:name "Eclipse Public License"
