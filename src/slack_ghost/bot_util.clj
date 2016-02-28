@@ -29,7 +29,7 @@
    (loop [channels (:channels bot)]
      (if (not (= (count channels) 0))
        (do
-         (join bot (:name (first channels)))
+         (join-all bot (:name (first channels)))
          (recur (rest channels))))))
   ([bot channel-name]
    (channels/join (:connection bot) channel-name)))
