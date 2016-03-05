@@ -14,8 +14,8 @@
   (url [this])
   (connect [this])
   (receiver [this response])
-  (select-func [this type keys])
-  (on-type [this message]))
+  (select-func [this type subtype])
+  (on-type [this fns message]))
 
 (defrecord Bot [connection ownid users channels groups event]
   IBot
@@ -25,31 +25,28 @@
     (let [s (ws/connect (url this)
                         :on-receive #(receiver this %))]
       s))
-  (select-func [this type keys]
-    (let [nop (fn [x] x)]
-      (if (contains? (:event this) (keyword type))
-        (cond
-          (and (= type "message")
-               (or
-                (< -1 (.indexOf keys :subtype))
-                (< -1 (.indexOf keys :reply_to))
-                (< -1 (.indexOf keys :deleted_ts)))) nop
-                :else #(on-type this %))
+  (select-func [this type subtype]
+    (let [event (:event this)
+          selected-with-type (get event type)
+          selected-with-subtype (get selected-with-type subtype)
+          selected-with-all (get selected-with-type :all)
+          fns (remove nil? (concat selected-with-subtype selected-with-all))
+          nop (fn [x] x)]
+      (if (some? fns)
+        #(on-type this fns %)
         nop)))
   (receiver [this response]
     (let [data (json/read-str response :key-fn keyword)
-          type (:type data)
-          keys (keys data)
+          type (keyword (:type data))
+          subtype (keyword (:subtype data))
           on-all (:all (:event this))
-          on (select-func this type keys)]
+          on (select-func this type subtype)]
       (if on-all (doseq [m on-all] (m this data)))
       (on data)))
-  (on-type [this message]
-    (if (not (= (:ownid this) (:user message)))
-      (let [message-fns ((keyword (:type message)) (:event this))]
-        (doseq [message-fn message-fns]
-          (try (message-fn this message)
-               (catch Exception e (.printStackTrace e))))))))
+  (on-type [this fns message]
+    (doseq [message-fn fns]
+      (try (message-fn this message)
+           (catch Exception e (.printStackTrace e))))))
 
 (defrecord User [id name])
 

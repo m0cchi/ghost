@@ -1,7 +1,6 @@
 (ns slack-ghost.bot-util
   (:require [clj-slack.channels :as channels]))
 
-
 (defn search
   ([list target key]
    (search target key (first list) (rest list)))
