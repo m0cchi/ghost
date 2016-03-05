@@ -4,8 +4,12 @@
 
 * repository
 https://clojars.org/slack-ghost
+
 *[slack-ghost \"0.6.2-SNAPSHOT\"]*
 
+* task list
+- reconnect
+- subtype
 * bot sample
 #+BEGIN_SRC clojure
 (ns slack-bot.core
