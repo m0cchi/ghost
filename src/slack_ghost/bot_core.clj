@@ -116,7 +116,6 @@
   ([token]
    (constructor-bot token {:message [#(println %2)]}))
   ([token event]
-
    (let [connection {:api-url "https://slack.com/api" :token token}
          users (create #'constructor-user (:members (users/list connection)))
          channels (create #'constructor-channel (:channels (channels/list connection)))
