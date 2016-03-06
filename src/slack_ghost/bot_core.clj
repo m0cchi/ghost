@@ -95,37 +95,34 @@
   (assoc this :users
          (create #'constructor-user (:members (users/list (:connection this))))))
 
-(defn- build-in 
-  ([events]
-   (doseq [build-in-event-key (keys build-in-events)]
-     (assoc events build-in-event-key (build-in (build-in-event-key events) (build-in-event-key build-in-events))))
-   events)
-  ([event build-in-events]
-   (if event
-     (build-in event (first build-in-events) (rest build-in-events))
-     build-in-events))
-  ([event build-in-event build-in-events]
-   (let [event (conj build-in-event event)
-         build-in-event (first build-in-events)
-         build-in-events (rest build-in-events)]
-     (if build-in-event
-       (build-in event build-in-event build-in-events)
-       event))))
-
 (defn get-ownid [connection]
   (let [data (auth/test connection)]
     (if (:ok data)
       (:user_id data))))
 
+(defn- event-to-heavy [event]
+  (let [to-heavy (fn [pair]
+                   (if (= (type (first pair))
+                          clojure.lang.PersistentVector)
+                     [(first pair) {:all (second pair)}]
+                     pair))]
+    (into {}
+          (map to-heavy event))))
+
+(defn- build-in [event]
+  (merge (event-to-heavy build-in-events)
+         event))
+
 (defn constructor-bot
   ([token]
    (constructor-bot token {:message [#(println %2)]}))
   ([token event]
+
    (let [connection {:api-url "https://slack.com/api" :token token}
          users (create #'constructor-user (:members (users/list connection)))
          channels (create #'constructor-channel (:channels (channels/list connection)))
          groups (create #'constructor-group (:groups (groups/list connection)))
-         event (build-in event)
+         event (build-in (event-to-heavy event))
          ownid (get-ownid connection)
          bot (->Bot connection ownid users channels groups event)]
      bot)))
