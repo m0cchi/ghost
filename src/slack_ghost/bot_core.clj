@@ -39,7 +39,7 @@
     (let [data (json/read-str response :key-fn keyword)
           type (keyword (:type data))
           subtype (keyword (:subtype data))
-          on-all (:all (:event this))
+          on-all (:all (:all (:event this)))
           on (select-func this type subtype)]
       (if on-all (doseq [m on-all] (m this data)))
       (on data)))
@@ -102,12 +102,11 @@
 
 (defn- event-to-heavy [event]
   (let [to-heavy (fn [pair]
-                   (if (= (type (first pair))
+                   (if (= (type (second pair))
                           clojure.lang.PersistentVector)
                      [(first pair) {:all (second pair)}]
                      pair))]
-    (into {}
-          (map to-heavy event))))
+    (into {} (map to-heavy event))))
 
 (defn- build-in [event]
   (merge (event-to-heavy build-in-events)
