@@ -23,6 +23,7 @@
     (:url (rtm/start (:connection this))))
   (connect [this]
     (let [s (ws/connect (url this)
+                        :on-close #(connect this)
                         :on-receive #(receiver this %))]
       s))
   (select-func [this type subtype]
