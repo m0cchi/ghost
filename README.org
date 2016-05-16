@@ -5,7 +5,7 @@
 * repository
 https://clojars.org/slack-ghost
 
-*[slack-ghost \"0.6.2-SNAPSHOT\"]*
+*[slack-ghost \"0.6.5-SNAPSHOT\"]*
 
 * task list
 - reconnect
